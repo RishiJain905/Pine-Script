@@ -1,0 +1,42 @@
+//@version=5
+indicator("Smart Money Concepts" , shorttitle="SMC", overlay=true)
+
+// Define the length of the BOS and CHOCH
+
+tf = input.timeframe("15", title="Timeframe", tooltip="Timeframe for analysis")
+lookback = input.int(20, minval=5, title="Lookback Period", tooltip="How far back to look for structure")
+premiumDiscountZones = input.bool(true, title="Show Premium/Discount Zones")
+
+// Variables
+// NA MEANS NULL IN OTHER LANGUAGES 
+// IF NOT NA MEANS THAT THE VARIABLE HAS A VALUE
+var float swingHigh = na
+var float swingLow = na
+var box equilibriumBox = na
+var float lastEquilibrium = na
+
+// Logic: Identify Swing High/Low
+if high > ta.highest(high[1], lookback) and high > high[1]
+    swingHigh := high
+if low < ta.lowest(low[1], lookback) and low < low[1]
+    swingLow := low
+
+// Plot Swing Highs/Lows
+if not na(swingHigh)
+    label.new(bar_index, swingHigh, "SH", style=label.style_label_down, color=color.red)
+if not na(swingLow)
+    label.new(bar_index, swingLow, "SL", style=label.style_label_up, color=color.green)
+
+// Premium/Discount Zones (Placeholder)
+if not na(swingHigh) and not na(swingLow)
+    float equilibrium = (swingHigh + swingLow) / 2
+    if equilibrium != lastEquilibrium
+        label.new(x = bar_index, y = equilibrium, text = "Equilibrium", color=color.gray, style=label.style_label_left, textcolor=color.white)
+
+    if na(equilibriumBox)
+        equilibriumBox := box.new(left=bar_index - 1, right=bar_index, top=swingLow, bottom=swingHigh, border_color=color.gray, border_width=2, bgcolor=color.new(color.gray,90))
+    else
+        box.set_left(equilibriumBox, bar_index - 1)
+        box.set_right(equilibriumBox, bar_index)
+        box.set_top(equilibriumBox, swingHigh)
+        box.set_bottom(equilibriumBox, swingLow)
