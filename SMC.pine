@@ -12,31 +12,62 @@ premiumDiscountZones = input.bool(true, title="Show Premium/Discount Zones")
 // IF NOT NA MEANS THAT THE VARIABLE HAS A VALUE
 var float swingHigh = na
 var float swingLow = na
+var line swingHighLine = na
+var line swingLowLine = na
+var label swingHighLabel = na
+var label swingLowLabel = na
 var box equilibriumBox = na
 var float lastEquilibrium = na
+var label equilibriumlabel = na
+float padding = (swingHigh - swingLow) * 0.35 // 20% padding 
+float adjustedtop = swingHigh - padding
+float adjustedbottom = swingLow + padding
 
 // Logic: Identify Swing High/Low
-if high > ta.highest(high[1], lookback) and high > high[1]
+if high > ta.highest(high[1], 10)
     swingHigh := high
-if low < ta.lowest(low[1], lookback) and low < low[1]
+if low < ta.lowest(low[1], 10)
     swingLow := low
 
 // Plot Swing Highs/Lows
 if not na(swingHigh)
-    label.new(bar_index, swingHigh, "SH", style=label.style_label_down, color=color.red)
+    if na(swingHighLine)
+        swingHighLine := line.new(x1 = bar_index - 25, y1 = swingHigh, x2 = bar_index + 25, y2 = swingHigh, color = color.red, width = 3, style = line.style_dashed)
+        swingHighLabel := label.new(x = bar_index + 11, y =  swingHigh, text = "Swing High", color=color.red, textcolor = color.white, style = label.style_label_right)
+    else
+        line.set_xy1(swingHighLine, x = bar_index - 25, y = swingHigh)
+        line.set_xy2(swingHighLine, x = bar_index + 10, y = swingHigh)
+        label.set_xy(swingHighLabel, x = bar_index + 11, y = swingHigh)
 if not na(swingLow)
-    label.new(bar_index, swingLow, "SL", style=label.style_label_up, color=color.green)
-
-// Premium/Discount Zones (Placeholder)
+    if na(swingLowLine)
+        swingLowLine := line.new(x1 = bar_index - 25, y1 = swingLow, x2 = bar_index + 25, y2 = swingLow, color = color.green, width = 3, style = line.style_dashed)
+        swingLowLabel := label.new(x = bar_index + 11, y =  swingLow, text = "Swing Low", color=color.green, textcolor = color.white, style = label.style_label_right)
+    else
+        line.set_xy1(swingLowLine, x = bar_index - 25, y = swingLow)
+        line.set_xy2(swingLowLine, x = bar_index + 10, y = swingLow)
+        label.set_xy(swingLowLabel, x = bar_index + 11, y = swingLow)
+    
+    
+    
+    
+    
+    
+    
+    // Premium/Discount Zones (Placeholder)
 if not na(swingHigh) and not na(swingLow)
     float equilibrium = (swingHigh + swingLow) / 2
     if equilibrium != lastEquilibrium
         label.new(x = bar_index, y = equilibrium, text = "Equilibrium", color=color.gray, style=label.style_label_left, textcolor=color.white)
 
     if na(equilibriumBox)
-        equilibriumBox := box.new(left=bar_index - 1, right=bar_index, top=swingLow, bottom=swingHigh, border_color=color.gray, border_width=2, bgcolor=color.new(color.gray,90))
+        equilibriumBox := box.new(left=bar_index - 1, right=bar_index, top=adjustedtop, bottom=adjustedbottom, border_color=color.gray, border_width=2, bgcolor=color.new(color.gray,90))
     else
-        box.set_left(equilibriumBox, bar_index - 1)
+        box.set_left(equilibriumBox, bar_index - 30)
         box.set_right(equilibriumBox, bar_index)
-        box.set_top(equilibriumBox, swingHigh)
-        box.set_bottom(equilibriumBox, swingLow)
+        box.set_top(equilibriumBox, adjustedtop)
+        box.set_bottom(equilibriumBox, adjustedbottom)
+    if na(equilibriumlabel)
+        equilibriumlabel := label.new(x = bar_index, y = equilibrium , text = "Equilibrium", color=color.gray, style=label.style_label_left, textcolor=color.white)
+    else
+        label.set_xy(equilibriumlabel, x = bar_index, y = equilibrium)
+        label.set_text(equilibriumlabel, text = "Equilibrium")
