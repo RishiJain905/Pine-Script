@@ -4,7 +4,8 @@ indicator("Smart Money Concepts" , shorttitle="SMC", overlay=true)
 // Define the length of the BOS and CHOCH
 
 tf = input.timeframe("15", title="Timeframe", tooltip="Timeframe for analysis")
-lookback = input.int(20, minval=5, title="Lookback Period", tooltip="How far back to look for structure")
+lookbackSwing = input.int(10, minval=5, title="Swing High/Low Lookback Period", tooltip="Lookback for Swing Highs/Lows")
+lookbackLocal = input.int(500, minval=5, title="Local High/Low Lookback Period", tooltip="Lookback for Local Highs/Lows")
 premiumDiscountZones = input.bool(true, title="Show Premium/Discount Zones")
 
 // Variables
@@ -14,20 +15,31 @@ var float swingHigh = na
 var float swingLow = na
 var line swingHighLine = na
 var line swingLowLine = na
+var line equilibriumline = na
 var label swingHighLabel = na
 var label swingLowLabel = na
 var box equilibriumBox = na
+float equilibrium = na
 var float lastEquilibrium = na
 var label equilibriumlabel = na
-float padding = (swingHigh - swingLow) * 0.35 // 20% padding 
-float adjustedtop = swingHigh - padding
-float adjustedbottom = swingLow + padding
+var float localhigh = na
+var float locallow = na
+float padding = (localhigh - locallow) * 0.45 // 20% padding 
+float adjustedtop = localhigh - padding
+float adjustedbottom = locallow + padding
+var box DiscountZones = na
+var box premiumZpnes = na
 
 // Logic: Identify Swing High/Low
-if high > ta.highest(high[1], 10)
+// Swing High/Low Logic (Unchanged)
+if high > ta.highest(high[1], lookbackSwing)
     swingHigh := high
-if low < ta.lowest(low[1], 10)
+if low < ta.lowest(low[1], lookbackSwing)
     swingLow := low
+
+// Local High/Low for Equilibrium and Zones
+localhigh := ta.highest(high, lookbackLocal)  // Highest point in the broader lookback period
+locallow := ta.lowest(low, lookbackLocal)    // Lowest point in the broader lookback period
 
 // Plot Swing Highs/Lows
 if not na(swingHigh)
@@ -54,15 +66,15 @@ if not na(swingLow)
     
     
     // Premium/Discount Zones (Placeholder)
-if not na(swingHigh) and not na(swingLow)
-    float equilibrium = (swingHigh + swingLow) / 2
+if not na(localhigh) and not na(locallow)
+    equilibrium := (localhigh + locallow) / 2
     if equilibrium != lastEquilibrium
         label.new(x = bar_index, y = equilibrium, text = "Equilibrium", color=color.gray, style=label.style_label_left, textcolor=color.white)
 
     if na(equilibriumBox)
         equilibriumBox := box.new(left=bar_index - 1, right=bar_index, top=adjustedtop, bottom=adjustedbottom, border_color=color.gray, border_width=2, bgcolor=color.new(color.gray,90))
     else
-        box.set_left(equilibriumBox, bar_index - 30)
+        box.set_left(equilibriumBox, bar_index - 100)
         box.set_right(equilibriumBox, bar_index)
         box.set_top(equilibriumBox, adjustedtop)
         box.set_bottom(equilibriumBox, adjustedbottom)
@@ -71,3 +83,7 @@ if not na(swingHigh) and not na(swingLow)
     else
         label.set_xy(equilibriumlabel, x = bar_index, y = equilibrium)
         label.set_text(equilibriumlabel, text = "Equilibrium")
+plot(localhigh, color=color.red, title="Local High (Strong High)")
+plot(locallow, color=color.green, title="Local Low (Weak Low)")
+plot(equilibrium, color=color.gray, title="Equilibrium Line")
+        
