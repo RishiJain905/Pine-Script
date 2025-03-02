@@ -83,7 +83,4 @@ if not na(localhigh) and not na(locallow)
     else
         label.set_xy(equilibriumlabel, x = bar_index, y = equilibrium)
         label.set_text(equilibriumlabel, text = "Equilibrium")
-plot(localhigh, color=color.red, title="Local High (Strong High)")
-plot(locallow, color=color.green, title="Local Low (Weak Low)")
-plot(equilibrium, color=color.gray, title="Equilibrium Line")
-        
+// CREATE PREMIUM/DISCOUNT ZONES
